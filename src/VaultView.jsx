@@ -3,7 +3,7 @@ import { useCurrentAccount, useSignAndExecuteTransaction, useSuiClient } from "@
 import { Transaction } from "@mysten/sui/transactions";
 
 const WALRUS_AGGREGATOR = "https://aggregator.walrus-testnet.walrus.space";
-const PACKAGE_ID = import.meta.env.VITE_PACKAGE_ID;
+const PACKAGE_ID = import.meta.env.VITE_PACKAGE_ID || "0xe5ebb0f94fa5c9dc9445fa93eb040f751fcee496bb1054413d4fd3c1e2edf766";
 
 function decrypt(encoded, key) {
   try {

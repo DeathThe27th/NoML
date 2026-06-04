@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useSuiClient } from "@mysten/dapp-kit";
 
-const REGISTRY_ID = import.meta.env.VITE_REGISTRY_ID;
-const PACKAGE_ID  = import.meta.env.VITE_PACKAGE_ID;
+const REGISTRY_ID = import.meta.env.VITE_REGISTRY_ID || "0x7e0c22c3df0d3f4fbbf267990989d8cb0f77bf4cc3df35d4a74de44c2ec30dc5";
+const PACKAGE_ID  = import.meta.env.VITE_PACKAGE_ID  || "0xe5ebb0f94fa5c9dc9445fa93eb040f751fcee496bb1054413d4fd3c1e2edf766";
 
 const css = `
   .explore-page { padding: 48px 24px; max-width: 960px; margin: 0 auto; }

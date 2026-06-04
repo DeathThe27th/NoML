@@ -5,8 +5,9 @@ import { Transaction } from "@mysten/sui/transactions";
 const WALRUS_PUBLISHER  = "https://publisher.walrus-testnet.walrus.space";
 const WALRUS_AGGREGATOR = "https://aggregator.walrus-testnet.walrus.space";
 const EPOCHS = 5;
-const PACKAGE_ID  = import.meta.env.VITE_PACKAGE_ID;
-const REGISTRY_ID = import.meta.env.VITE_REGISTRY_ID;
+// Hardcoded fallbacks in case env vars aren't picked up
+const PACKAGE_ID  = import.meta.env.VITE_PACKAGE_ID  || "0xe5ebb0f94fa5c9dc9445fa93eb040f751fcee496bb1054413d4fd3c1e2edf766";
+const REGISTRY_ID = import.meta.env.VITE_REGISTRY_ID || "0x7e0c22c3df0d3f4fbbf267990989d8cb0f77bf4cc3df35d4a74de44c2ec30dc5";
 
 const css = `
   .publish-page { padding: 48px 24px; max-width: 680px; margin: 0 auto; }
@@ -78,6 +79,11 @@ export default function Publish({ navigate, vaultId, onVaultCreated }) {
 
   async function handlePublish() {
     if (!canSubmit) return;
+    if (!PACKAGE_ID || !REGISTRY_ID) {
+      setError("Contract addresses not configured. Check environment variables.");
+      setStep(-1);
+      return;
+    }
     setError(""); setBlobId(null); setTxDigest(null);
 
     try {
