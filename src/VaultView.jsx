@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useCurrentAccount, useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
+import { bcs } from "@mysten/sui/bcs";
 
 const WALRUS_AGGREGATOR = "https://aggregator.walrus-testnet.walrus.space";
 const PACKAGE_ID = import.meta.env.VITE_PACKAGE_ID || "0xe5ebb0f94fa5c9dc9445fa93eb040f751fcee496bb1054413d4fd3c1e2edf766";
@@ -109,12 +110,12 @@ function Entry({ piece, vaultId, vaultOwner, account, signAndExecute }) {
     setMinting(true);
     try {
       const tx = new Transaction();
-      const coin = tx.splitCoins(tx.gas, [tx.pure.u64(BigInt(piece.price_mist))])[0];
+      const coin = tx.splitCoins(tx.gas, [tx.pure(bcs.u64().serialize(BigInt(piece.price_mist)).toBytes())])[0];
       tx.moveCall({
         target: `${PACKAGE_ID}::vault::mint_access`,
         arguments: [
           tx.object(vaultId),
-          tx.pure.u64(piece.id),
+          tx.pure(bcs.u64().serialize(BigInt(piece.id)).toBytes()),
           coin,
         ],
       });
