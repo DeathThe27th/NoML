@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Publish from "./Publish.jsx";
 import {
   useCurrentAccount,
   useConnectWallet,
@@ -509,52 +510,6 @@ function Vault({ analystId, navigate }) {
   );
 }
 
-function Publish({ navigate }) {
-  const account = useCurrentAccount();
-  const steps = [
-    ["01","Connect Wallet","Your Sui address is your identity. No name, email, or KYC."],
-    ["02","Create Your Vault","Name it. Write a bio. Your vault is live immediately."],
-    ["03","Upload a Piece","Encrypted and stored permanently on Walrus. Free or paid — your call."],
-    ["04","Set Price & Supply","Set SUI price and optional mint cap. Limited supply = scarce alpha."],
-    ["05","Earn","Readers mint NFTs for access. Agents pay via x402. You keep everything."],
-  ];
-  return (
-    <div className="explore-page page" style={{maxWidth:"560px"}}>
-      <button className="page-back" onClick={() => navigate("home")}>← BACK</button>
-      <div className="page-title">OPEN YOUR VAULT</div>
-      <p className="page-sub">
-        {account
-          ? `Connected: ${account.address.slice(0,8)}...${account.address.slice(-4)}`
-          : "Connect your Sui wallet to create a vault. Set pieces as free or paid. Keep 100% of mint revenue."}
-      </p>
-      <div style={{display:"flex",flexDirection:"column",gap:"1px",background:"var(--border)",border:"1px solid var(--border)",marginBottom:"32px"}}>
-        {steps.map(([n,title,desc]) => (
-          <div className="publish-step" key={n}>
-            <div style={{display:"flex",gap:"14px",alignItems:"flex-start"}}>
-              <div className="publish-step-num">{n}</div>
-              <div>
-                <div className="publish-step-title">{title}</div>
-                <div className="publish-step-desc">{desc}</div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      {!account && (
-        <div style={{fontFamily:"'Syne Mono',monospace",fontSize:"9px",color:"var(--ash)",marginBottom:"16px",lineHeight:1.8}}>
-          Connect your wallet first via the nav bar.
-        </div>
-      )}
-      <button
-        className="btn btn-filled"
-        style={{width:"100%",padding:"14px",fontSize:"11px",letterSpacing:"0.12em",opacity: account ? 1 : 0.5}}
-        disabled={!account}
-      >
-        {account ? "CREATE VAULT →" : "CONNECT WALLET TO BEGIN"}
-      </button>
-    </div>
-  );
-}
 
 // ─── APP ──────────────────────────────────────────────────────────────────────
 
