@@ -3,22 +3,10 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  build: {
-    commonjsOptions: {
-      transformMixedEsModules: true,
-    },
+  resolve: {
+    dedupe: ['@mysten/sui', '@mysten/dapp-kit', 'react', 'react-dom'],
   },
   optimizeDeps: {
-    include: [
-      '@mysten/dapp-kit',
-      '@mysten/sui',
-      '@mysten/sui/transactions',
-      '@mysten/sui/client',
-      '@tanstack/react-query',
-    ],
-    force: true,
-  },
-  resolve: {
-    dedupe: ['@mysten/sui', '@mysten/dapp-kit'],
+    include: ['@mysten/dapp-kit', '@mysten/sui', '@tanstack/react-query'],
   },
 })
