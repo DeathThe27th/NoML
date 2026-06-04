@@ -109,7 +109,7 @@ function Entry({ piece, vaultId, vaultOwner, account, signAndExecute }) {
     setMinting(true);
     try {
       const tx = new Transaction();
-      const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(piece.price_mist)]);
+      const coin = tx.splitCoins(tx.gas, [tx.pure.u64(BigInt(piece.price_mist))])[0];
       tx.moveCall({
         target: `${PACKAGE_ID}::vault::mint_access`,
         arguments: [
