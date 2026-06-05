@@ -110,7 +110,10 @@ function Entry({ piece, vaultId, vaultOwner, account, signAndExecute }) {
     setMinting(true);
     try {
       const tx = new Transaction();
-      const coin = tx.splitCoins(tx.gas, [tx.pure(bcs.u64().serialize(BigInt(piece.price_mist)).toBytes())])[0];
+      const priceMist = BigInt(piece.price_mist);
+      const [coin] = tx.splitCoins(tx.gas, [
+        tx.pure(bcs.u64().serialize(priceMist).toBytes())
+      ]);
       tx.moveCall({
         target: `${PACKAGE_ID}::vault::mint_access`,
         arguments: [
@@ -119,6 +122,7 @@ function Entry({ piece, vaultId, vaultOwner, account, signAndExecute }) {
           coin,
         ],
       });
+      tx.setGasBudget(10000000);
       await signAndExecute({ transaction: tx });
       setHasNFT(true);
       await handleRead();
