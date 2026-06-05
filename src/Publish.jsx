@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useCurrentAccount, useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
-import { bcs } from "@mysten/sui/bcs";
 
 const WALRUS_PUBLISHER  = "https://publisher.walrus-testnet.walrus.space";
 const WALRUS_AGGREGATOR = "https://aggregator.walrus-testnet.walrus.space";
@@ -55,19 +54,6 @@ function toBytes(str) {
   return Array.from(new TextEncoder().encode(str));
 }
 
-function pureBytes(tx, str) {
-  const bytes = toBytes(str);
-  return tx.pure(bcs.vector(bcs.u8()).serialize(bytes).toBytes());
-}
-
-function pureBool(tx, val) {
-  return tx.pure(bcs.bool().serialize(val).toBytes());
-}
-
-function pureU64(tx, val) {
-  return tx.pure(bcs.u64().serialize(val).toBytes());
-}
-
 const STEPS = ["Encrypt content", "Upload to Walrus", "Create vault on Sui", "Publish piece on Sui", "Done"];
 
 export default function Publish({ navigate, vaultId, onVaultCreated }) {
@@ -105,7 +91,7 @@ export default function Publish({ navigate, vaultId, onVaultCreated }) {
       setStep(1);
       await sleep(300);
       const payload = JSON.stringify({ title, content, author: account.address, timestamp: Date.now(), isPaid, price: isPaid ? price : null, supply: isPaid && supply ? parseInt(supply) : null });
-      const data    = isPaid ? encrypt(payload, account.address) : payload;
+      const data = payload; // Encryption key server is a future improvement
 
       // 2. Upload to Walrus
       setStep(2);
@@ -126,8 +112,8 @@ export default function Publish({ navigate, vaultId, onVaultCreated }) {
           target: `${PACKAGE_ID}::vault::create_vault`,
           arguments: [
             tx.object(REGISTRY_ID),
-            pureBytes(tx, account.address.slice(0, 20)),
-            pureBytes(tx, bio || "Independent analyst."),
+            tx.pure.vector("u8", toBytes(account.address.slice(0, 20))),
+            tx.pure.vector("u8", toBytes(bio || "Independent analyst.")),
           ],
         });
         const vaultResult = await signAndExecute({ transaction: tx });
@@ -154,11 +140,11 @@ export default function Publish({ navigate, vaultId, onVaultCreated }) {
         target: `${PACKAGE_ID}::vault::publish_piece`,
         arguments: [
           tx2.object(activeVaultId),
-          pureBytes(tx2, title),
-          pureBytes(tx2, id),
-          pureBool(tx2, isPaid),
-          pureU64(tx2, priceMist),
-          pureU64(tx2, supplyVal),
+          tx2.pure.vector("u8", toBytes(title)),
+          tx2.pure.vector("u8", toBytes(id)),
+          tx2.pure.bool(isPaid),
+          tx2.pure.u64(priceMist),
+          tx2.pure.u64(supplyVal),
         ],
       });
       const pieceResult = await signAndExecute({ transaction: tx2 });

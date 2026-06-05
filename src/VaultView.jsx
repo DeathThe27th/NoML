@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useCurrentAccount, useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
-import { bcs } from "@mysten/sui/bcs";
 
 const WALRUS_AGGREGATOR = "https://aggregator.walrus-testnet.walrus.space";
 const PACKAGE_ID = import.meta.env.VITE_PACKAGE_ID || "0x9c878f43db4c79ffb76e43335564eafa1c3f6e46dcbfaef4e4008353a6509058";
@@ -53,10 +52,12 @@ function Entry({ piece, vaultId, vaultOwner, account, signAndExecute }) {
   const [loading,  setLoading]  = useState(false);
   const [minting,  setMinting]  = useState(false);
   const [hasNFT,   setHasNFT]   = useState(false);
+  const [mintError,setMintError]= useState("");
   const suiClient = useSuiClient();
 
-  const soldOut = !piece.is_paid && piece.supply > 0 && piece.minted >= piece.supply;
-  const priceSui = piece.price_mist ? (Number(piece.price_mist) / 1_000_000_000).toFixed(2) : null;
+  const soldOut   = !piece.is_paid && piece.supply > 0 && piece.minted >= piece.supply;
+  const priceSui  = piece.price_mist ? (Number(piece.price_mist) / 1_000_000_000).toFixed(2) : null;
+  const isOwner   = account?.address === vaultOwner;
 
   async function checkNFT() {
     if (!account) return false;
@@ -80,8 +81,9 @@ function Entry({ piece, vaultId, vaultOwner, account, signAndExecute }) {
       setOpen(true);
       setLoading(true);
       try {
-        // Check NFT ownership for paid pieces
-        if (piece.is_paid) {
+        // Owner can always read their own content
+        // Others need NFT for paid pieces
+        if (piece.is_paid && !isOwner) {
           const owns = await checkNFT();
           if (!owns) { setLoading(false); return; }
         }
@@ -89,14 +91,12 @@ function Entry({ piece, vaultId, vaultOwner, account, signAndExecute }) {
         const res = await fetch(`${WALRUS_AGGREGATOR}/v1/blobs/${piece.blob_id}`);
         if (!res.ok) throw new Error("Failed to fetch from Walrus");
         const raw = await res.text();
-        // Decrypt if paid
-        if (piece.is_paid && account) {
-          const decrypted = decrypt(raw, account.address);
-          const parsed = decrypted ? JSON.parse(decrypted) : null;
-          setContent(parsed?.content || decrypted || raw);
-        } else {
-          try { setContent(JSON.parse(raw)?.content || raw); }
-          catch { setContent(raw); }
+        // Parse content from Walrus blob
+        try {
+          const parsed = JSON.parse(raw);
+          setContent(parsed?.content || raw);
+        } catch {
+          setContent(raw);
         }
       } catch (err) { setContent(`Error: ${err.message}`); }
       setLoading(false);
@@ -108,25 +108,42 @@ function Entry({ piece, vaultId, vaultOwner, account, signAndExecute }) {
   async function handleMint() {
     if (!account || !vaultId) return;
     setMinting(true);
+    setMintError("");
     try {
       const tx = new Transaction();
       const priceMist = BigInt(piece.price_mist);
-      const [coin] = tx.splitCoins(tx.gas, [
-        tx.pure(bcs.u64().serialize(priceMist).toBytes())
-      ]);
+
+      // Use coins array indexing instead of destructuring
+      const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(priceMist)]);
+
       tx.moveCall({
         target: `${PACKAGE_ID}::vault::mint_access`,
         arguments: [
           tx.object(vaultId),
-          tx.pure(bcs.u64().serialize(BigInt(piece.id)).toBytes()),
+          tx.pure.u64(BigInt(piece.id)),
           coin,
         ],
       });
+
       tx.setGasBudget(10000000);
-      await signAndExecute({ transaction: tx });
-      setHasNFT(true);
-      await handleRead();
-    } catch (err) { console.error(err); }
+
+      const result = await signAndExecute({ transaction: tx });
+      if (!result?.digest) throw new Error("Transaction failed — no digest returned");
+
+      // Wait for tx to be indexed on chain
+      await new Promise(r => setTimeout(r, 3000));
+
+      const confirmed = await checkNFT();
+      if (confirmed) {
+        setHasNFT(true);
+        await handleRead();
+      } else {
+        setMintError("NFT indexing — click CHECK WALLET in a few seconds.");
+      }
+    } catch (err) {
+      console.error("Mint error:", err);
+      setMintError(err.message || "Mint failed. Try again.");
+    }
     setMinting(false);
   }
 
@@ -149,28 +166,34 @@ function Entry({ piece, vaultId, vaultOwner, account, signAndExecute }) {
           </>
         )}
 
-        {!piece.is_paid && (
-          <div className={`entry-action gold`} onClick={handleRead}>
-            {open ? "CLOSE ↑" : "READ FREE →"}
+        {/* Free piece or vault owner — read directly */}
+        {(!piece.is_paid || isOwner) && (
+          <div className="entry-action gold" onClick={handleRead}>
+            {open ? "CLOSE ↑" : isOwner && piece.is_paid ? "READ (OWNER) →" : "READ FREE →"}
           </div>
         )}
 
-        {piece.is_paid && !hasNFT && !soldOut && (
-          <button className="mint-btn" onClick={handleMint} disabled={minting || !account}>
-            {minting ? "MINTING..." : `MINT ACCESS · ${priceSui} SUI`}
-          </button>
-        )}
-
-        {piece.is_paid && hasNFT && (
+        {/* Paid, not owner, has NFT */}
+        {piece.is_paid && !isOwner && hasNFT && (
           <div className="entry-action gold" onClick={handleRead}>
             {open ? "CLOSE ↑" : "READ · NFT OWNED →"}
           </div>
         )}
 
-        {piece.is_paid && !hasNFT && !soldOut && account && (
-          <div className="entry-action" style={{marginLeft:0}} onClick={checkNFT}>
-            CHECK WALLET
-          </div>
+        {/* Paid, not owner, no NFT, not sold out */}
+        {piece.is_paid && !isOwner && !hasNFT && !soldOut && (
+          <>
+            <button className="mint-btn" onClick={handleMint} disabled={minting || !account}>
+              {minting ? "MINTING..." : `MINT ACCESS · ${priceSui} SUI`}
+            </button>
+            <div className="entry-action" style={{marginLeft:0}} onClick={checkNFT}>
+              CHECK WALLET
+            </div>
+          </>
+        )}
+
+        {mintError && (
+          <div style={{fontSize:"8px",color:"#BF8A7D",width:"100%",marginTop:"4px"}}>{mintError}</div>
         )}
       </div>
 
