@@ -4,7 +4,7 @@ import { Transaction } from "@mysten/sui/transactions";
 import { bcs } from "@mysten/sui/bcs";
 
 const WALRUS_AGGREGATOR = "https://aggregator.walrus-testnet.walrus.space";
-const PACKAGE_ID = import.meta.env.VITE_PACKAGE_ID || "0xe5ebb0f94fa5c9dc9445fa93eb040f751fcee496bb1054413d4fd3c1e2edf766";
+const PACKAGE_ID = import.meta.env.VITE_PACKAGE_ID || "0x9c878f43db4c79ffb76e43335564eafa1c3f6e46dcbfaef4e4008353a6509058";
 
 function decrypt(encoded, key) {
   try {

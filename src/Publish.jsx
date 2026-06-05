@@ -7,8 +7,8 @@ const WALRUS_PUBLISHER  = "https://publisher.walrus-testnet.walrus.space";
 const WALRUS_AGGREGATOR = "https://aggregator.walrus-testnet.walrus.space";
 const EPOCHS = 5;
 // Hardcoded fallbacks in case env vars aren't picked up
-const PACKAGE_ID  = import.meta.env.VITE_PACKAGE_ID  || "0xe5ebb0f94fa5c9dc9445fa93eb040f751fcee496bb1054413d4fd3c1e2edf766";
-const REGISTRY_ID = import.meta.env.VITE_REGISTRY_ID || "0x7e0c22c3df0d3f4fbbf267990989d8cb0f77bf4cc3df35d4a74de44c2ec30dc5";
+const PACKAGE_ID  = import.meta.env.VITE_PACKAGE_ID  || "0x9c878f43db4c79ffb76e43335564eafa1c3f6e46dcbfaef4e4008353a6509058";
+const REGISTRY_ID = import.meta.env.VITE_REGISTRY_ID || "0x8d36ca78a0781f6098f9f17f28124e3f1fde3b9975c62347e9cf8fab8cf8d959";
 
 const css = `
   .publish-page { padding: 48px 24px; max-width: 680px; margin: 0 auto; }
