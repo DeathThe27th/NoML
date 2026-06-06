@@ -4,7 +4,8 @@ import { Transaction } from "@mysten/sui/transactions";
 
 const WALRUS_PUBLISHER  = "https://publisher.walrus-testnet.walrus.space";
 const WALRUS_AGGREGATOR = "https://aggregator.walrus-testnet.walrus.space";
-const EPOCHS = 5;
+const MIN_EPOCHS = 1;
+const MAX_EPOCHS = 200;
 // Hardcoded fallbacks in case env vars aren't picked up
 const PACKAGE_ID  = import.meta.env.VITE_PACKAGE_ID  || "0x9c878f43db4c79ffb76e43335564eafa1c3f6e46dcbfaef4e4008353a6509058";
 const REGISTRY_ID = import.meta.env.VITE_REGISTRY_ID || "0x8d36ca78a0781f6098f9f17f28124e3f1fde3b9975c62347e9cf8fab8cf8d959";
@@ -68,6 +69,7 @@ export default function Publish({ navigate, vaultId, onVaultCreated }) {
   const [isPaid,  setIsPaid]  = useState(false);
   const [price,   setPrice]   = useState("");
   const [supply,  setSupply]  = useState("");
+  const [epochs,  setEpochs]  = useState("10");
   const [step,    setStep]    = useState(0);
   const [blobId,  setBlobId]  = useState(null);
   const [txDigest,setTxDigest]= useState(null);
@@ -97,7 +99,7 @@ export default function Publish({ navigate, vaultId, onVaultCreated }) {
       // 2. Upload to Walrus
       setStep(2);
       const blob = new Blob([data], { type: "text/plain" });
-      const res  = await fetch(`${WALRUS_PUBLISHER}/v1/blobs?epochs=${EPOCHS}`, { method: "PUT", body: blob });
+      const res  = await fetch(`${WALRUS_PUBLISHER}/v1/blobs?epochs=${Math.min(Math.max(parseInt(epochs)||10, MIN_EPOCHS), MAX_EPOCHS)}`, { method: "PUT", body: blob });
       if (!res.ok) throw new Error(`Walrus upload failed: ${res.status}`);
       const walrusData = await res.json();
       const id = walrusData?.newlyCreated?.blobObject?.blobId || walrusData?.alreadyCertified?.blobId || walrusData?.blobId;
@@ -160,7 +162,7 @@ export default function Publish({ navigate, vaultId, onVaultCreated }) {
     }
   }
 
-  function reset() { setStep(0); setTitle(""); setContent(""); setPrice(""); setSupply(""); setBio(""); setAlias(""); setBlobId(null); setTxDigest(null); setError(""); }
+  function reset() { setStep(0); setTitle(""); setContent(""); setPrice(""); setSupply(""); setBio(""); setAlias(""); setEpochs("10"); setBlobId(null); setTxDigest(null); setError(""); }
 
   return (
     <>
@@ -212,6 +214,11 @@ export default function Publish({ navigate, vaultId, onVaultCreated }) {
             <input className="form-input" placeholder="e.g. On-chain forensics. Follow the wallets." value={bio} onChange={e => setBio(e.target.value)} disabled={isBusy} />
           </div>
         )}
+
+        <div className="form-section">
+          <label className="form-label">Storage Duration (Epochs · 1 epoch ≈ 1 day)</label>
+          <input className="form-input" type="number" min="1" max="200" placeholder="10" value={epochs} onChange={e => setEpochs(e.target.value)} disabled={isBusy} />
+        </div>
 
         <div className="form-section">
           <label className="form-label">Access Type</label>

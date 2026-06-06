@@ -23,10 +23,10 @@ const css = `
   .vault-stats { display: flex; gap: 24px; margin-bottom: 40px; padding-bottom: 32px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .vs-val   { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--bone); line-height: 1; }
   .vs-label { font-size: 8px; color: var(--ash); letter-spacing: 0.1em; margin-top: 3px; }
-  .entries-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); }
-  .entry { background: var(--surface); padding: 20px; transition: background 0.18s; animation: fadeUp 0.4s ease both; }
+  .entries-list { display: flex; flex-direction: column; gap: 12px; }
+  .entry { background: var(--surface); padding: 20px; border: 1px solid var(--border); transition: all 0.18s; animation: fadeUp 0.4s ease both; }
   .entry-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
-  .entry-title { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 400; font-size: 15px; color: var(--bone); line-height: 1.4; flex: 1; }
+  .entry-title { font-family: 'Syne Mono', monospace; font-size: 13px; color: var(--bone); line-height: 1.5; flex: 1; }
   .entry-badge { font-size: 7px; letter-spacing: 0.12em; padding: 3px 8px; flex-shrink: 0; font-weight: 700; }
   .badge-free { background: var(--border2); color: var(--ash); }
   .badge-paid { background: var(--gold); color: var(--ink); }
@@ -257,7 +257,7 @@ export default function VaultView({ vaultId, vaultData, navigate }) {
           <div>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"28px",color:"var(--bone)",lineHeight:1,marginBottom:"4px"}}>{name}</div>
             <div style={{fontSize:"9px",color:"var(--ash)",marginBottom:"8px"}}>{owner.slice(0,8)}...{owner.slice(-4)}</div>
-            <div style={{fontFamily:"'Cormorant Garamond',serif",fontStyle:"italic",fontSize:"13px",color:"var(--sand)"}}>{vaultData?.bio || "Independent analyst."}</div>
+            <div style={{fontFamily:"'Syne Mono',monospace",fontSize:"11px",color:"var(--ash)"}}>{vaultData?.bio || "Independent analyst."}</div>
           </div>
         </div>
 

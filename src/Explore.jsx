@@ -30,7 +30,7 @@ const css = `
 
   .vr-body { flex: 1; min-width: 0; }
   .vr-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.04em; color: var(--bone); transition: color 0.15s; line-height: 1; margin-bottom: 4px; }
-  .vr-bio  { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 14px; color: var(--sand); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vr-bio  { font-family: 'Syne Mono', monospace; font-size: 11px; color: var(--ash); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   .vr-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
   .vr-stat { text-align: right; }
