@@ -13,7 +13,7 @@ const css = `
   .publish-page { padding: 48px 24px; max-width: 680px; margin: 0 auto; }
   @media (min-width: 768px) { .publish-page { padding: 64px 40px; } }
   .form-section { margin-bottom: 28px; }
-  .form-label { display: block; font-size: 8px; letter-spacing: 0.18em; color: var(--ash); margin-bottom: 10px; text-transform: uppercase; }
+  .form-label { display: block; font-size: 11px; letter-spacing: 0.12em; color: var(--ash); margin-bottom: 10px; text-transform: uppercase; }
   .form-input { width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--bone); font-family: 'Syne Mono', monospace; font-size: 11px; padding: 12px 14px; outline: none; transition: border-color 0.2s; letter-spacing: 0.04em; }
   .form-input:focus { border-color: var(--gold); }
   .form-input::placeholder { color: var(--muted); }
@@ -23,7 +23,7 @@ const css = `
   .toggle-btn.active { background: var(--gold); color: var(--ink); font-weight: 700; }
   .price-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
   .price-cell { background: var(--surface); }
-  .status-box { padding: 16px; margin-top: 16px; font-family: 'Syne Mono', monospace; font-size: 9px; letter-spacing: 0.06em; line-height: 1.9; border: 1px solid var(--border2); }
+  .status-box { padding: 16px; margin-top: 16px; font-family: 'Syne Mono', monospace; font-size: 11px; letter-spacing: 0.04em; line-height: 1.9; border: 1px solid var(--border2); }
   .status-box.success { border-color: #4A7C59; background: rgba(74,124,89,0.08); color: #7DBF94; }
   .status-box.error   { border-color: #7C4A4A; background: rgba(124,74,74,0.08); color: #BF8A7D; }
   .status-box.loading { border-color: var(--gold-dim); background: rgba(201,150,58,0.05); color: var(--gold); }
@@ -36,7 +36,7 @@ const css = `
   .step-mini-num { width: 20px; height: 20px; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--gold-dim); flex-shrink: 0; }
   .step-mini.done   .step-mini-num { border-color: #4A7C59; color: #7DBF94; background: rgba(74,124,89,0.1); }
   .step-mini.active .step-mini-num { border-color: var(--gold); color: var(--gold); }
-  .vault-notice { padding: 14px 16px; border: 1px solid var(--border2); font-size: 9px; color: var(--ash); line-height: 1.8; margin-bottom: 28px; letter-spacing: 0.05em; }
+  .vault-notice { padding: 14px 16px; border: 1px solid var(--border2); font-size: 11px; color: var(--ash); line-height: 1.8; margin-bottom: 28px; letter-spacing: 0.05em; }
   .vault-notice span { color: var(--gold); }
 `;
 
@@ -63,6 +63,7 @@ export default function Publish({ navigate, vaultId, onVaultCreated }) {
 
   const [title,   setTitle]   = useState("");
   const [content, setContent] = useState("");
+  const [alias,   setAlias]   = useState("");
   const [bio,     setBio]     = useState("");
   const [isPaid,  setIsPaid]  = useState(false);
   const [price,   setPrice]   = useState("");
@@ -112,7 +113,8 @@ export default function Publish({ navigate, vaultId, onVaultCreated }) {
           target: `${PACKAGE_ID}::vault::create_vault`,
           arguments: [
             tx.object(REGISTRY_ID),
-            tx.pure.vector("u8", toBytes(account.address.slice(0, 20))),
+            tx.pure.vector("u8", toBytes(alias || account.address.slice(0, 16))),
+
             tx.pure.vector("u8", toBytes(bio || "Independent analyst.")),
           ],
         });
@@ -158,7 +160,7 @@ export default function Publish({ navigate, vaultId, onVaultCreated }) {
     }
   }
 
-  function reset() { setStep(0); setTitle(""); setContent(""); setPrice(""); setSupply(""); setBio(""); setBlobId(null); setTxDigest(null); setError(""); }
+  function reset() { setStep(0); setTitle(""); setContent(""); setPrice(""); setSupply(""); setBio(""); setAlias(""); setBlobId(null); setTxDigest(null); setError(""); }
 
   return (
     <>
@@ -196,6 +198,13 @@ export default function Publish({ navigate, vaultId, onVaultCreated }) {
           <label className="form-label">Content</label>
           <textarea className="form-input" placeholder="Write your research, analysis, or alpha here..." value={content} onChange={e => setContent(e.target.value)} disabled={isBusy} />
         </div>
+
+        {!vaultId && (
+          <div className="form-section">
+            <label className="form-label">Your Alias (display name)</label>
+            <input className="form-input" placeholder="e.g. cipher_delta, warchest, rawdata..." value={alias} onChange={e => setAlias(e.target.value)} disabled={isBusy} />
+          </div>
+        )}
 
         {!vaultId && (
           <div className="form-section">

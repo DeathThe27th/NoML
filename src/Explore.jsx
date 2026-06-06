@@ -5,27 +5,43 @@ const REGISTRY_ID = import.meta.env.VITE_REGISTRY_ID || "0x8d36ca78a0781f6098f9f
 const PACKAGE_ID  = import.meta.env.VITE_PACKAGE_ID  || "0x9c878f43db4c79ffb76e43335564eafa1c3f6e46dcbfaef4e4008353a6509058";
 
 const css = `
-  .explore-page { padding: 48px 24px; max-width: 960px; margin: 0 auto; }
+  .explore-page { padding: 48px 24px; max-width: 760px; margin: 0 auto; }
   @media (min-width: 768px) { .explore-page { padding: 64px 40px; } }
-  .analysts-grid { display: grid; grid-template-columns: 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
-  @media (min-width: 560px) { .analysts-grid { grid-template-columns: repeat(2,1fr); } }
-  @media (min-width: 860px) { .analysts-grid { grid-template-columns: repeat(3,1fr); } }
-  .analyst-card { background: var(--surface); padding: 24px 20px; cursor: pointer; transition: background 0.2s; display: flex; flex-direction: column; animation: fadeUp 0.4s ease both; }
-  .analyst-card:hover { background: #201810; }
-  .analyst-card:hover .ac-enter { color: var(--gold); }
-  .ac-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
-  .ac-avatar { width: 38px; height: 38px; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 14px; color: var(--gold); background: var(--bg); flex-shrink: 0; }
-  .ac-name   { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.05em; color: var(--bone); margin-bottom: 2px; }
-  .ac-handle { font-size: 8px; color: var(--ash); letter-spacing: 0.08em; margin-bottom: 12px; }
-  .ac-bio    { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 300; font-size: 13px; color: var(--sand); line-height: 1.6; margin-bottom: 16px; flex: 1; }
-  .ac-footer { border-top: 1px solid var(--border); padding-top: 14px; display: flex; justify-content: space-between; align-items: center; }
-  .ac-stat-val   { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--bone); line-height: 1; }
-  .ac-stat-label { font-size: 7px; color: var(--ash); letter-spacing: 0.1em; margin-top: 2px; }
-  .ac-enter  { font-size: 8px; letter-spacing: 0.12em; color: var(--ash); transition: color 0.2s; }
-  .loading-row { padding: 48px; text-align: center; font-size: 9px; color: var(--ash); letter-spacing: 0.12em; }
+
+  .vault-list { display: flex; flex-direction: column; gap: 0; }
+
+  .vault-row {
+    display: flex; align-items: center; gap: 20px;
+    padding: 20px 0; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: all 0.15s;
+    animation: fadeUp 0.4s ease both;
+  }
+  .vault-row:first-child { border-top: 1px solid var(--border); }
+  .vault-row:hover .vr-name { color: var(--gold); }
+  .vault-row:hover .vr-arrow { color: var(--gold); transform: translate(3px, -3px); }
+
+  .vr-avatar {
+    width: 44px; height: 44px; flex-shrink: 0;
+    border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 16px;
+    color: var(--gold); background: var(--surface);
+  }
+
+  .vr-body { flex: 1; min-width: 0; }
+  .vr-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.04em; color: var(--bone); transition: color 0.15s; line-height: 1; margin-bottom: 4px; }
+  .vr-bio  { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 14px; color: var(--sand); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .vr-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+  .vr-stat { text-align: right; }
+  .vr-stat-val   { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--bone); line-height: 1; }
+  .vr-stat-label { font-size: 9px; color: var(--ash); letter-spacing: 0.1em; }
+  .vr-arrow { font-size: 16px; color: var(--muted); transition: all 0.2s; }
+
+  .loading-row { padding: 48px; text-align: center; font-size: 12px; color: var(--ash); letter-spacing: 0.1em; }
   .empty-state { padding: 64px 24px; text-align: center; }
-  .empty-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--ash); margin-bottom: 12px; }
-  .empty-sub { font-size: 9px; color: var(--muted); letter-spacing: 0.08em; line-height: 1.8; }
+  .empty-title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--ash); margin-bottom: 12px; }
+  .empty-sub { font-size: 12px; color: var(--muted); letter-spacing: 0.06em; line-height: 1.8; }
 `;
 
 export default function Explore({ navigate }) {
@@ -38,19 +54,17 @@ export default function Explore({ navigate }) {
   async function loadVaults() {
     setLoading(true);
     try {
-      // Query all VaultCreated events to discover vaults
       const events = await suiClient.queryEvents({
         query: { MoveEventType: `${PACKAGE_ID}::vault::VaultCreated` },
         limit: 50,
       });
 
       const vaultIds = events.data.map(e => ({
-        vaultId:  e.parsedJson?.vault_id,
-        owner:    e.parsedJson?.owner,
-        name:     e.parsedJson?.name,
+        vaultId: e.parsedJson?.vault_id,
+        owner:   e.parsedJson?.owner,
+        name:    e.parsedJson?.name,
       })).filter(v => v.vaultId);
 
-      // Fetch each vault object for piece counts
       const detailed = await Promise.all(
         vaultIds.map(async (v) => {
           try {
@@ -69,9 +83,7 @@ export default function Explore({ navigate }) {
       );
 
       setVaults(detailed);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
     setLoading(false);
   }
 
@@ -82,7 +94,9 @@ export default function Explore({ navigate }) {
         <button className="page-back" onClick={() => navigate("home")}>← BACK</button>
         <div className="page-title">RESEARCH VAULTS</div>
         <div className="page-sub" style={{marginBottom:"32px"}}>
-          {loading ? "Loading vaults from chain..." : `${vaults.length} analyst${vaults.length !== 1 ? "s" : ""} · Access is free · Some content requires a mint`}
+          {loading
+            ? "Loading vaults from chain..."
+            : `${vaults.length} analyst${vaults.length !== 1 ? "s" : ""} · Access is free · Some content requires a mint`}
         </div>
 
         {loading && <div className="loading-row">⟳ FETCHING VAULTS FROM SUI...</div>}
@@ -95,33 +109,29 @@ export default function Explore({ navigate }) {
         )}
 
         {!loading && vaults.length > 0 && (
-          <div className="analysts-grid">
+          <div className="vault-list">
             {vaults.map((v, i) => {
-              const initials = (v.name || v.owner || "??").slice(0,2).toUpperCase();
+              const displayName = v.name || `${v.owner?.slice(0,8)}...`;
+              const initials = displayName.slice(0,2).toUpperCase();
               return (
                 <div
-                  className="analyst-card"
+                  className="vault-row"
                   key={v.vaultId}
-                  style={{ animationDelay: `${i * 0.06}s` }}
+                  style={{ animationDelay: `${i * 0.05}s` }}
                   onClick={() => navigate("vault", { vaultId: v.vaultId, vaultData: v })}
                 >
-                  <div className="ac-top">
-                    <div className="ac-avatar">{initials}</div>
+                  <div className="vr-avatar">{initials}</div>
+                  <div className="vr-body">
+                    <div className="vr-name">{displayName}</div>
+                    <div className="vr-bio">{v.bio}</div>
                   </div>
-                  <div className="ac-name">{v.name || `${v.owner?.slice(0,8)}...`}</div>
-                  <div className="ac-handle">{v.owner?.slice(0,8)}...{v.owner?.slice(-4)}</div>
-                  <div className="ac-bio">{v.bio}</div>
-                  <div className="ac-footer">
-                    <div style={{display:"flex",gap:"20px"}}>
-                      {[["PIECES", v.pieceCount||0],["FREE", v.freeCount||0]].map(([l,val])=>(
-                        <div key={l}>
-                          <div className="ac-stat-val">{val}</div>
-                          <div className="ac-stat-label">{l}</div>
-                        </div>
-                      ))}
+                  <div className="vr-meta">
+                    <div className="vr-stat">
+                      <div className="vr-stat-val">{v.pieceCount || 0}</div>
+                      <div className="vr-stat-label">PIECES</div>
                     </div>
-                    <div className="ac-enter">ENTER ↗</div>
                   </div>
+                  <div className="vr-arrow">↗</div>
                 </div>
               );
             })}

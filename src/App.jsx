@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useCurrentAccount, useDisconnectWallet, useWallets, useConnectWallet } from "@mysten/dapp-kit";
-import Publish  from "./Publish.jsx";
-import Explore  from "./Explore.jsx";
+import Publish   from "./Publish.jsx";
+import Explore   from "./Explore.jsx";
 import VaultView from "./VaultView.jsx";
 
 const css = `
@@ -9,20 +9,20 @@ const css = `
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg:       #13100A;
-    --surface:  #1A1510;
-    --border:   #2C2318;
-    --border2:  #3D3020;
-    --gold:     #C9963A;
-    --gold-dim: #8A6520;
-    --bone:     #EDE5D0;
-    --sand:     #C4B48A;
-    --ash:      #7A6E58;
-    --muted:    #3D3528;
-    --ink:      #0E0B07;
+    --bg:       #0F0A0A;
+    --surface:  #1A1010;
+    --border:   #2C1818;
+    --border2:  #3D2020;
+    --gold:     #C0392B;
+    --gold-dim: #7B241C;
+    --bone:     #F0E8D8;
+    --sand:     #D4C4A0;
+    --ash:      #9A8878;
+    --muted:    #4D3D3D;
+    --ink:      #0A0505;
   }
   html, body { height: 100%; }
-  body { background: var(--bg); color: var(--bone); font-family: 'Syne Mono', monospace; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  body { background: var(--bg); color: var(--bone); font-family: 'Syne Mono', monospace; -webkit-font-smoothing: antialiased; overflow-x: hidden; font-size: 14px; }
   ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--gold); }
@@ -33,70 +33,70 @@ const css = `
 
   nav {
     position: sticky; top: 0; z-index: 100;
-    background: rgba(19,16,10,0.96); border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(12px); height: 52px; padding: 0 24px;
+    background: rgba(15,10,10,0.97); border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px); height: 56px; padding: 0 24px;
     display: flex; align-items: center; justify-content: space-between;
   }
   .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
-  .logo-mark { width: 30px; height: 30px; }
-  .logo-wordmark { font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 0.22em; color: var(--ash); }
-  @media (max-width: 400px) { .logo-wordmark { display: none; } }
+  .logo-mark { width: 32px; height: 32px; }
   .nav-right { display: flex; gap: 8px; align-items: center; }
 
-  .btn { font-family: 'Syne Mono', monospace; font-size: 9px; letter-spacing: 0.1em; cursor: pointer; border: none; padding: 7px 14px; transition: all 0.18s; }
+  .btn { font-family: 'Syne Mono', monospace; font-size: 11px; letter-spacing: 0.08em; cursor: pointer; border: none; padding: 8px 16px; transition: all 0.18s; }
   .btn-outline { background: none; border: 1px solid var(--border2); color: var(--ash); }
   .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
-  .btn-filled { background: var(--gold); color: var(--ink); font-weight: 700; }
-  .btn-filled:hover { background: #DCA840; }
-  .wallet-address { font-family: 'Syne Mono', monospace; font-size: 9px; color: var(--gold); border: 1px solid var(--border2); padding: 7px 12px; letter-spacing: 0.06em; display: flex; align-items: center; gap: 6px; }
-  .wallet-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+  .btn-filled { background: var(--gold); color: #fff; font-weight: 700; }
+  .btn-filled:hover { background: #E74C3C; }
+  .wallet-address { font-family: 'Syne Mono', monospace; font-size: 11px; color: var(--gold); border: 1px solid var(--border2); padding: 8px 14px; letter-spacing: 0.04em; display: flex; align-items: center; gap: 8px; }
+  .wallet-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
 
-  .modal-overlay { position: fixed; inset: 0; z-index: 999; background: rgba(14,11,7,0.88); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay { position: fixed; inset: 0; z-index: 999; background: rgba(10,5,5,0.9); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 24px; }
   .modal-box { background: var(--surface); border: 1px solid var(--border2); width: 100%; max-width: 360px; animation: fadeUp 0.2s ease both; }
   .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.06em; color: var(--bone); }
-  .modal-close { background: none; border: none; color: var(--ash); font-size: 18px; cursor: pointer; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.06em; color: var(--bone); }
+  .modal-close { background: none; border: none; color: var(--ash); font-size: 20px; cursor: pointer; }
   .modal-body  { padding: 12px; }
-  .modal-footer { padding: 14px 24px; border-top: 1px solid var(--border); font-size: 8px; color: var(--muted); letter-spacing: 0.08em; line-height: 1.8; }
-  .wallet-option { display: flex; align-items: center; gap: 14px; padding: 14px 12px; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; }
-  .wallet-option:hover { background: #201810; border-color: var(--border2); }
-  .wallet-icon { width: 36px; height: 36px; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg); }
-  .wallet-icon img { width: 22px; height: 22px; object-fit: contain; }
-  .wallet-name { font-size: 11px; color: var(--sand); letter-spacing: 0.06em; }
-  .wallet-cta  { margin-left: auto; font-size: 9px; color: var(--muted); letter-spacing: 0.1em; }
+  .modal-footer { padding: 14px 24px; border-top: 1px solid var(--border); font-size: 10px; color: var(--muted); letter-spacing: 0.06em; line-height: 1.8; }
+  .wallet-option { display: flex; align-items: center; gap: 14px; padding: 16px 12px; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; }
+  .wallet-option:hover { background: #1A100F; border-color: var(--border2); }
+  .wallet-icon { width: 38px; height: 38px; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg); }
+  .wallet-icon img { width: 24px; height: 24px; object-fit: contain; }
+  .wallet-name { font-size: 13px; color: var(--sand); letter-spacing: 0.04em; }
+  .wallet-cta  { margin-left: auto; font-size: 10px; color: var(--muted); letter-spacing: 0.08em; }
 
-  .landing { min-height: calc(100vh - 52px); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 48px 24px; position: relative; overflow: hidden; }
-  .landing-bg { position: absolute; inset: 0; z-index: 0; background: radial-gradient(ellipse 70% 40% at 50% 90%, rgba(201,150,58,0.07) 0%, transparent 70%), radial-gradient(ellipse 50% 30% at 20% 20%, rgba(201,150,58,0.03) 0%, transparent 60%); }
-  .landing-grid { position: absolute; inset: 0; z-index: 0; background-image: linear-gradient(rgba(201,150,58,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(201,150,58,0.03) 1px, transparent 1px); background-size: 48px 48px; }
+  /* LANDING */
+  .landing { min-height: calc(100vh - 56px); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 48px 24px; position: relative; overflow: hidden; }
+  .landing-bg { position: absolute; inset: 0; z-index: 0; background: radial-gradient(ellipse 70% 40% at 50% 90%, rgba(192,57,43,0.08) 0%, transparent 70%); }
+  .landing-grid { position: absolute; inset: 0; z-index: 0; background-image: linear-gradient(rgba(192,57,43,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(192,57,43,0.04) 1px, transparent 1px); background-size: 48px 48px; }
   .landing-content { position: relative; z-index: 1; max-width: 600px; width: 100%; }
-  .landing-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(52px,14vw,96px); line-height: 0.93; letter-spacing: 0.03em; margin-bottom: 28px; animation: fadeUp 0.5s ease 0.15s both; display: flex; flex-wrap: wrap; column-gap: 10px; align-items: baseline; }
-  .landing-title .solid   { color: var(--bone); }
-  .landing-title .outline { color: transparent; -webkit-text-stroke: 1.5px var(--gold-dim); }
-  .landing-title .dot     { color: var(--gold); font-size: 0.5em; align-self: center; padding-bottom: 4px; }
-  .landing-sub { font-family: 'Syne Mono', monospace; font-size: clamp(10px,2.5vw,12px); color: var(--ash); line-height: 2; margin-bottom: 52px; animation: fadeUp 0.5s ease 0.25s both; max-width: 460px; letter-spacing: 0.06em; }
-  .landing-paths { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; animation: fadeUp 0.5s ease 0.35s both; width: 100%; }
+
+  .landing-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(64px,16vw,120px); line-height: 0.9; letter-spacing: 0.02em; margin-bottom: 32px; animation: fadeUp 0.5s ease 0.1s both; }
+  .landing-title .solid   { display: block; color: var(--bone); }
+  .landing-title .outline { display: block; color: transparent; -webkit-text-stroke: 2px var(--gold-dim); }
+
+  .landing-sub { font-family: 'Syne Mono', monospace; font-size: clamp(11px,2.8vw,13px); color: var(--ash); line-height: 2.1; margin-bottom: 52px; animation: fadeUp 0.5s ease 0.2s both; max-width: 480px; letter-spacing: 0.05em; }
+  .landing-paths { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; animation: fadeUp 0.5s ease 0.3s both; width: 100%; }
   @media (max-width: 400px) { .landing-paths { grid-template-columns: 1fr; } }
-  .path-card { border: 1px solid var(--border2); background: var(--surface); padding: 28px 20px; cursor: pointer; transition: all 0.22s; text-align: left; position: relative; overflow: hidden; }
-  .path-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--gold); transform:scaleX(0); transform-origin:left; transition:transform 0.22s; }
-  .path-card:hover { border-color: var(--gold); background: #1F1912; transform: translateY(-3px); }
+  .path-card { border: 1px solid var(--border2); background: var(--surface); padding: 32px 24px; cursor: pointer; transition: all 0.22s; text-align: left; position: relative; overflow: hidden; }
+  .path-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--gold); transform:scaleX(0); transform-origin:left; transition:transform 0.22s; }
+  .path-card:hover { border-color: var(--gold); background: #1A100F; transform: translateY(-3px); }
   .path-card:hover::before { transform: scaleX(1); }
-  .path-icon  { font-size: 20px; margin-bottom: 14px; display: block; }
-  .path-label { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 0.06em; color: var(--bone); margin-bottom: 8px; }
-  .path-desc  { font-size: 9px; color: var(--ash); line-height: 1.8; letter-spacing: 0.04em; }
-  .path-arrow { position: absolute; bottom: 20px; right: 20px; font-size: 18px; color: var(--gold-dim); transition: all 0.2s; }
+  .path-icon  { font-size: 22px; margin-bottom: 16px; display: block; }
+  .path-label { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 0.06em; color: var(--bone); margin-bottom: 10px; }
+  .path-desc  { font-size: 11px; color: var(--ash); line-height: 1.8; }
+  .path-arrow { position: absolute; bottom: 20px; right: 20px; font-size: 20px; color: var(--gold-dim); transition: all 0.2s; }
   .path-card:hover .path-arrow { color: var(--gold); transform: translate(3px,-3px); }
 
-  .page-back { display: inline-flex; align-items: center; gap: 8px; font-size: 9px; letter-spacing: 0.12em; color: var(--ash); cursor: pointer; background: none; border: none; margin-bottom: 24px; transition: color 0.15s; font-family: 'Syne Mono', monospace; }
+  .page-back { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.1em; color: var(--ash); cursor: pointer; background: none; border: none; margin-bottom: 28px; transition: color 0.15s; font-family: 'Syne Mono', monospace; }
   .page-back:hover { color: var(--gold); }
-  .page-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px,8vw,56px); letter-spacing: 0.04em; color: var(--bone); line-height: 1; margin-bottom: 10px; }
-  .page-sub   { font-size: 9px; color: var(--ash); letter-spacing: 0.08em; line-height: 1.8; }
+  .page-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(40px,9vw,62px); letter-spacing: 0.04em; color: var(--bone); line-height: 1; margin-bottom: 12px; }
+  .page-sub   { font-size: 11px; color: var(--ash); letter-spacing: 0.06em; line-height: 1.8; }
 `;
 
-function NMLMark() {
+function NoMLMark() {
   return (
-    <svg className="logo-mark" viewBox="0 0 30 30" fill="none">
-      <rect x="1" y="1" width="28" height="28" stroke="#C9963A" strokeWidth="1.2"/>
-      <text x="15" y="20" textAnchor="middle" fontFamily="'Bebas Neue', sans-serif" fontSize="12" fill="#C9963A" letterSpacing="1.5">NML</text>
+    <svg className="logo-mark" viewBox="0 0 32 32" fill="none">
+      <rect x="1" y="1" width="30" height="30" stroke="#C0392B" strokeWidth="1.2"/>
+      <text x="16" y="21" textAnchor="middle" fontFamily="'Bebas Neue', sans-serif" fontSize="11" fill="#C0392B" letterSpacing="0.5">NoML</text>
     </svg>
   );
 }
@@ -117,17 +117,18 @@ function WalletModal({ onClose }) {
           {slush ? (
             <div className="wallet-option" onClick={() => connectWallet({ wallet: slush }, { onSuccess: onClose })}>
               <div className="wallet-icon">
-                {slush.icon ? <img src={slush.icon} alt="Slush"/> : <span style={{color:"#C9963A",fontSize:"16px"}}>◈</span>}
+                {slush.icon ? <img src={slush.icon} alt="Slush"/> : <span style={{color:"#C0392B",fontSize:"18px"}}>◈</span>}
               </div>
               <div className="wallet-name">{slush.name}</div>
               <div className="wallet-cta">{isPending ? "CONNECTING..." : "CONNECT →"}</div>
             </div>
           ) : (
-            <div style={{padding:"24px",textAlign:"center"}}>
-              <div style={{fontFamily:"'Syne Mono',monospace",fontSize:"10px",color:"var(--ash)",lineHeight:1.8,marginBottom:"16px"}}>
+            <div style={{padding:"28px",textAlign:"center"}}>
+              <div style={{fontFamily:"'Syne Mono',monospace",fontSize:"12px",color:"var(--ash)",lineHeight:1.8,marginBottom:"20px"}}>
                 Slush Wallet not detected.<br/>Install it to continue.
               </div>
-              <a href="https://slush.app" target="_blank" rel="noopener noreferrer" style={{display:"inline-block",background:"var(--gold)",color:"var(--ink)",fontFamily:"'Syne Mono',monospace",fontSize:"9px",letterSpacing:"0.1em",fontWeight:700,padding:"10px 20px",textDecoration:"none"}}>
+              <a href="https://slush.app" target="_blank" rel="noopener noreferrer"
+                style={{display:"inline-block",background:"var(--gold)",color:"#fff",fontFamily:"'Syne Mono',monospace",fontSize:"11px",letterSpacing:"0.08em",fontWeight:700,padding:"12px 24px",textDecoration:"none"}}>
                 GET SLUSH WALLET →
               </a>
             </div>
@@ -147,9 +148,7 @@ function Landing({ navigate }) {
       <div className="landing-content">
         <div className="landing-title">
           <span className="solid">NO</span>
-          <span className="dot">✦</span>
           <span className="solid">MAN'S</span>
-          <span className="dot">✦</span>
           <span className="outline">LAND</span>
         </div>
         <p className="landing-sub">
@@ -197,8 +196,7 @@ export default function App() {
 
       <nav>
         <div className="logo" onClick={() => navigate("home")}>
-          <NMLMark/>
-          <span className="logo-wordmark">NO MAN'S LAND</span>
+          <NoMLMark/>
         </div>
         <div className="nav-right">
           {account ? (
